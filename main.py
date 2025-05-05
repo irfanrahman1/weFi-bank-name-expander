@@ -1,33 +1,18 @@
+from utils import expand_abbreviation
 import pandas as pd
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 
+print("💬 Bank Name Expander — Type an abbreviation or 'quit'")
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+while True:
+    query = input("Enter an abbreviated bank name (or 'quit'): ").strip()
+    if query.lower() == 'quit':
+        print("Goodbye!")
+        break
 
-
-full_names = [
-    "Bank of America", "Wells Fargo", "Citigroup", "Goldman Sachs",
-    "JPMorgan Chase", "Morgan Stanley", "Barclays", "HSBC",
-    "Deutsche Bank", "Capital One", "American Express", "Chase Bank"
-]
-
-
-full_name_embeddings = model.encode(full_names)
-
-def expand_abbreviation(user_input, top_k=3):
-    input_embedding = model.encode([user_input])
-    similarities = cosine_similarity(input_embedding, full_name_embeddings)[0]
-    top_indices = similarities.argsort()[-top_k:][::-1]
-    results = [(full_names[i], round(similarities[i], 4)) for i in top_indices]
-    return results
-
-if __name__ == "__main__":
-    while True:
-        query = input("Enter an abbreviated bank name (or 'quit'): ").strip()
-        if query.lower() == 'quit':
-            break
-        matches = expand_abbreviation(query)
+    matches = expand_abbreviation(query, top_k=3, threshold=0.25)
+    if matches:
         for name, score in matches:
-            print(f"{name} (score: {score})")
-        print("---")
+            print(f"{name} (score: {round(score, 4)})")
+    else:
+        print("❌ No confident match found.")
+    print("---")
